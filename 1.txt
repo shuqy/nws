@@ -1,0 +1,100 @@
+var expercise = [
+            idarr = [],//所有问题序号
+            question_arr = [],//问题集合
+            pattern = "@(ViewBag.pattern)",//练习模式
+            pre_load_quantity = 10,//预加载问题的数量
+            before_quantity = 5,//提前多少预加载
+            cur_question_id = "@(ViewBag.id)",//当前问题
+            q_index = 0,//当前问题索引
+            init = function () {
+                this.idarr = JSON.parse(getSequenec(1, pattern))['Data'];
+                if (this.pattern == 1) {
+                    this.q_index = this.idarr.binary_search(this.cur_question_id, 0, this.idarr.length - 1);
+                } else {
+                    this.q_index = this.idarr.search(this.cur_question_id);
+                }
+            },
+            get_question_info = function (id, direction) {
+                var q_arr = this.question_arr;
+                for (var i in q_arr) {
+                    if (q_arr[i]['questionId'] == id) {
+                        check_is_get_question(q_index, direction);
+                        return q_arr[i];
+                    }
+                }
+                alert('数据加载出错，请稍后重试');
+            },
+            check_is_get_question = function (index, direction) {
+                if (direction > 0) {//正向
+                    var n_index = parseInt(index) + this.before_quantity;
+                    for (var i in this.question_arr) {
+                        if (this.question_arr[i]['questionId'] == this.idarr[n_index]) {
+                            return;
+                        }
+                    }
+                    var ids = this.get_ids(n_index, direction);
+                    this.get_questions(ids);
+                } else if (direction < 0) {//反向
+                    var n_index = parseInt(index) - this.before_quantity;
+                    for (var i in question_arr) {
+                        if (this.question_arr[i]['questionId'] == this.idarr[n_index]) {
+                            return;
+                        }
+                    }
+                    var ids = this.get_ids(n_index, direction);
+                    this.get_questions(ids);
+                }
+            },
+            get_questions = function (ids, is_first) {
+                $.post("/JK/QuestionList", { questionIds: ids }, function (d) {
+                    if (d && d.Code == 0) {
+                        for (var i in d.Data) {
+                            this.question_arr.push(d.Data[i]);
+                        }
+                        if (this.question_arr.length > 200) {
+                            var nquestion_arr = [];
+                            for (var j = 120; j < this.question_arr.length; j++) {
+                                nquestion_arr.push(this.question_arr[j]);
+                            }
+                            question_arr = nquestion_arr;
+                        }
+                        if (is_first) {//第一次获取时，绑定数据
+                            var q = this.get_question_info(this.cur_question_id, 1);
+                            this.show_question(q);
+                        }
+                    }
+                });
+            },
+            get_ids = function (index, direction, is_first) {
+                if (index < 0) return "";
+                var ids = "";
+                var n_index = index;
+                if (is_first) {//第一次获取时，前后都获取
+                    for (var i = 0; i < this.pre_load_quantity; i++) {
+                        --n_index;
+                        if (n_index > idarr.length || n_index < 0) {
+                            break;
+                        }
+                        ids += idarr[n_index] + ",";
+                    }
+                }
+                n_index = index;
+                for (var i = 0; i < this.pre_load_quantity; i++) {
+                    ids += idarr[n_index] + ",";
+                    if (direction > 0) n_index++;
+                    else n_index--;
+                    if (n_index >= idarr.length || n_index <= 0) {
+                        break;
+                    }
+                }
+                return ids;
+            },
+            get_sequenec = function (km, p) {
+                return $.ajax({
+                    url: "/JK/Sequenec",
+                    data: { km: km, pattern: p },
+                    type: "post",
+                    async: false,
+                }).responseText;
+            },
+        ];
