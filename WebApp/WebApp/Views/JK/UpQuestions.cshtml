@@ -1,0 +1,22 @@
+﻿@{
+    ViewBag.Title = "更新题库";
+}
+<br />
+<input type="button" onclick="upQuestion(1)" value="更新科目一题库" />
+<input type="button" onclick="upQuestion(3)" value="更新科目二题库" />
+<hr />
+<div id="tip"></div>
+
+<script>
+    $(function () {
+    })
+    function upQuestion(type) {
+        $.post("/JK/UpdateQuestions", { type: type }, function (d) {
+            if (d.Code == 0) {
+                $("#tip").html("更新" + d.Data + "条");
+            } else {
+                $("#tip").html("更新失败");
+            }
+        });
+    }
+</script>

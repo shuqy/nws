@@ -1,0 +1,5 @@
+D:\nws\WebApp\Model\bin\Debug\Model.dll
+D:\nws\WebApp\Model\bin\Debug\Model.pdb
+D:\nws\WebApp\Model\obj\Debug\Model.dll
+D:\nws\WebApp\Model\obj\Debug\Model.pdb
+D:\nws\WebApp\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache

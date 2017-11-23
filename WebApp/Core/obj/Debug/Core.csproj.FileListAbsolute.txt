@@ -1,0 +1,9 @@
+D:\nws\WebApp\Core\obj\Debug\Core.csprojResolveAssemblyReference.cache
+D:\nws\WebApp\Core\bin\Debug\Core.dll
+D:\nws\WebApp\Core\bin\Debug\Core.pdb
+D:\nws\WebApp\Core\bin\Debug\Dapper.dll
+D:\nws\WebApp\Core\bin\Debug\Dapper.xml
+D:\nws\WebApp\Core\obj\Debug\Core.dll
+D:\nws\WebApp\Core\obj\Debug\Core.pdb
+D:\nws\WebApp\Core\bin\Debug\Model.dll
+D:\nws\WebApp\Core\bin\Debug\Model.pdb

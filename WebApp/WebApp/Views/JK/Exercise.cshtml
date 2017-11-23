@@ -1,0 +1,54 @@
+﻿@{
+    ViewBag.Title = "Exercise";
+}
+
+<h2></h2>
+<div id="ds">
+
+</div>
+
+@section scripts{
+    <script>
+        var idarr = [];
+
+        $(function () {
+            var sdata = getSequenec(1);
+            sdata = JSON.parse(sdata);
+            idarr = sdata['Data'];
+            getQuestions(800900);
+        });
+        function getSequenec(km) {
+            return $.ajax({
+                url: "/JK/Sequenec",
+                data: { km: km },
+                type: "post",
+                async: false,
+            }).responseText;
+        }
+        function getQuestions(id) {
+            var ids = "";
+            var index = 0;
+            for (var i = 0; i < idarr.length; i++) {
+                if (idarr[i] == id) {
+                    index = i;
+                    break;
+                }
+            }
+            for (var i = 0; i < 10; i++) {
+                ids += idarr[index] + ",";
+                index++;
+                if (index >= idarr.length) {
+                    break;
+                }
+            }
+            console.log(ids)
+            $.post("/JK/QuestionList", { questionIds: ids }, function (d) {
+                if (d && d.Code == 0) {
+                    for (var i in d.Data) {
+                        $("#ds").append(d.Data[i]['question']+"<br/>");
+                    }
+                }
+            });
+        }
+    </script>
+}
