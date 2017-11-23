@@ -3,52 +3,191 @@
 }
 
 <h2></h2>
-<div id="ds">
-
+<div id="ds" style="height:300px;">
+    <p><span id="question"></span>[难度：<span id="difficulty"></span>]</p>
+    <div id="answer_data"></div>
 </div>
+<input type="button" id="prev" value="上一题" />
+<input type="button" id="next" value="下一题" />
 
 @section scripts{
     <script>
-        var idarr = [];
+        var idarr = [];//所有问题序号
+        var question_arr = [];//问题集合
+        var pattern = "@(ViewBag.pattern)";//练习模式
+        var pre_load_quantity = 10;//预加载问题的数量
+        var before_quantity = 5;//提前多少预加载
+        var cur_question_id = "@(ViewBag.id)";//当前问题
+        var q_index = 0;//当前问题索引
 
         $(function () {
-            var sdata = getSequenec(1);
-            sdata = JSON.parse(sdata);
-            idarr = sdata['Data'];
-            getQuestions(800900);
+            idarr = JSON.parse(getSequenec(1, pattern))['Data'];
+            if (pattern == 1) {
+                q_index = idarr.binary_search(cur_question_id, 0, idarr.length - 1);
+            } else {
+                q_index = idarr.search(cur_question_id);
+            }
+            //首次加载
+            var ids = get_ids(q_index, 1, true);
+            get_questions(ids, true);
+
+            //点击上一题
+            $("#prev").click(function () {
+                if (q_index <= 0) {
+                    alert('已经是第一题了');
+                    return;
+                }
+                var q = get_question_info(idarr[--q_index], -1);
+                show_question(q);
+            })
+            //点击下一题
+            $("#next").click(function () {
+                if (q_index >= idarr.length) {
+                    alert('已经是之后一题了');
+                    return;
+                }
+                var q = get_question_info(idarr[++q_index], 1);
+                show_question(q);
+            })
         });
-        function getSequenec(km) {
+
+        //展示问题
+        function show_question(q_info) {
+            $("#question").text(q_info['question']);
+            $("#difficulty").text(q_info['difficulty']);
+            var html = "";
+            var base_answer_value = 16;
+            if (q_info['optionType'] == 0) {//判断题
+                html += '<input type="radio" name="answer" value="' + base_answer_value + '"/>' + q_info['optionA'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 2 + '"/>' + q_info['optionB'];
+            } else if (q_info['optionType'] == 1) {
+                html += '<input type="radio" name="answer" value="' + base_answer_value + '"/>' + q_info['optionA'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 2 + '"/>' + q_info['optionB'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 4 + '"/>' + q_info['optionC'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 8 + '"/>' + q_info['optionD'];
+            } else if (q_info['optionType'] == 2) {
+                html += '<input type="radio" name="answer" value="' + base_answer_value + '"/>' + q_info['optionA'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 2 + '"/>' + q_info['optionB'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 4 + '"/>' + q_info['optionC'];
+                html += '<input type="radio" name="answer" value="' + base_answer_value * 8 + '"/>' + q_info['optionD'];
+            }
+            $("#answer_data").html(html);
+        }
+
+        //获取问题
+        function get_question_info(id, direction) {
+            for (var i in question_arr) {
+                if (question_arr[i]['questionId'] == id) {
+                    check_is_get_question(q_index, direction);
+                    return question_arr[i];
+                }
+            }
+            alert('数据加载出错，请稍后重试');
+        }
+
+        //预加载数据
+        function check_is_get_question(index, direction) {
+            if (direction > 0) {//正向
+                var n_index = parseInt(index) + before_quantity;
+                for (var i in question_arr) {
+                    if (question_arr[i]['questionId'] == idarr[n_index]) {
+                        return;
+                    }
+                }
+                var ids = get_ids(n_index, direction);
+                get_questions(ids);
+            } else if (direction < 0) {//反向
+                var n_index = parseInt(index) - before_quantity;
+                for (var i in question_arr) {
+                    if (question_arr[i]['questionId'] == idarr[n_index]) {
+                        return;
+                    }
+                }
+                var ids = get_ids(n_index, direction);
+                get_questions(ids);
+            }
+        }
+
+        //获取问题id
+        function get_ids(index, direction, is_first) {
+            if (index < 0) return "";
+            var ids = "";
+            var n_index = index;
+            if (is_first) {//第一次获取时，前后都获取
+                for (var i = 0; i < pre_load_quantity; i++) {
+                    --n_index;
+                    if (n_index > idarr.length || n_index < 0) {
+                        break;
+                    }
+                    ids += idarr[n_index] + ",";
+                }
+            }
+            n_index = index;
+            for (var i = 0; i < pre_load_quantity; i++) {
+                ids += idarr[n_index] + ",";
+                if (direction > 0) n_index++;
+                else n_index--;
+                if (n_index >= idarr.length || n_index <= 0) {
+                    break;
+                }
+            }
+            return ids;
+        }
+
+        //获取问题及答案
+        function get_questions(ids, is_first) {
+            $.post("/JK/QuestionList", { questionIds: ids }, function (d) {
+                if (d && d.Code == 0) {
+                    for (var i in d.Data) {
+                        question_arr.push(d.Data[i]);
+                    }
+                    if (question_arr.length > 200) {
+                        var nquestion_arr = [];
+                        for (var j = 120; j < question_arr.length; j++) {
+                            nquestion_arr.push(question_arr[j]);
+                        }
+                        question_arr = nquestion_arr;
+                    }
+                    if (is_first) {//第一次获取时，绑定数据
+                        var q = get_question_info(cur_question_id, 1);
+                        show_question(q);
+                    }
+                }
+            });
+        }
+
+        //获取问题序号
+        function getSequenec(km, p) {
             return $.ajax({
                 url: "/JK/Sequenec",
-                data: { km: km },
+                data: { km: km, pattern: p },
                 type: "post",
                 async: false,
             }).responseText;
         }
-        function getQuestions(id) {
-            var ids = "";
-            var index = 0;
-            for (var i = 0; i < idarr.length; i++) {
-                if (idarr[i] == id) {
-                    index = i;
-                    break;
+
+
+        //二分搜索
+        Array.prototype.binary_search = function (key, start, end) {
+            if (start >= end) {
+                return -1;
+            }
+            var mid = parseInt((end + start) / 2);
+            if (this[mid] > key) {
+                return this.binary_search(key, start, mid);
+            }
+            if (this[mid] < key) {
+                return this.binary_search(key, mid, end);
+            }
+            return mid;
+        }
+        //遍历查找
+        Array.prototype.search = function (key) {
+            for (var i in this) {
+                if (this[i] == key) {
+                    return i;
                 }
             }
-            for (var i = 0; i < 10; i++) {
-                ids += idarr[index] + ",";
-                index++;
-                if (index >= idarr.length) {
-                    break;
-                }
-            }
-            console.log(ids)
-            $.post("/JK/QuestionList", { questionIds: ids }, function (d) {
-                if (d && d.Code == 0) {
-                    for (var i in d.Data) {
-                        $("#ds").append(d.Data[i]['question']+"<br/>");
-                    }
-                }
-            });
         }
     </script>
 }

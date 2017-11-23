@@ -83,11 +83,17 @@ namespace WebApp.Controllers
         }
 
         /// <summary>
-        /// 练习
+        /// 联系
         /// </summary>
+        /// <param name="km"></param>
+        /// <param name="id"></param>
+        /// <param name="pattern">练习模式 1顺序练习 2随机练习</param>
         /// <returns></returns>
-        public ActionResult Exercise(int km, int id)
+        public ActionResult Exercise(int km = 1, int id = 800100, int pattern = 1)
         {
+            ViewBag.km = km;
+            ViewBag.id = id;
+            ViewBag.pattern = pattern;
             return View();
         }
 
@@ -103,7 +109,7 @@ namespace WebApp.Controllers
                 return Json(new JsonData { Code = Core.Enum.ResultCode.Error, Message = "参数错误" }, JsonRequestBehavior.DenyGet);
             }
             questionIds = questionIds.TrimEnd(',');
-            if (questionIds.Split(',').Length > 10)
+            if (questionIds.Split(',').Length > 20)
             {
                 return Json(new JsonData { Code = Core.Enum.ResultCode.Error, Message = "参数错误" }, JsonRequestBehavior.DenyGet);
             }
@@ -117,11 +123,12 @@ namespace WebApp.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public JsonResult Sequenec(int km = 0)
+        public JsonResult Sequenec(int km = 0, int pattern = 1)
         {
             DapperHelper dapperHelper = new DapperHelper(Core.Enum.DbConnEnum.my3w);
             var list = dapperHelper.Query<QuestionResult>(string.Format("select questionId from QuestionResult where type={0}", km));
             List<int> idList = list.Select(l => l.questionId).ToList();
+            if (pattern == 2) idList = idList.OrderBy(l => Guid.NewGuid()).ToList();
             return Json(new JsonData { Code = Core.Enum.ResultCode.OK, Data = idList }, JsonRequestBehavior.DenyGet);
         }
     }
