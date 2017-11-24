@@ -16,3 +16,12 @@ D:\workspace\nws\WebApp\Core\bin\Debug\Dapper.xml
 D:\workspace\nws\WebApp\Core\obj\Debug\Core.csprojResolveAssemblyReference.cache
 D:\workspace\nws\WebApp\Core\obj\Debug\Core.dll
 D:\workspace\nws\WebApp\Core\obj\Debug\Core.pdb
+D:\nws\nnws\WebApp\Core\bin\Debug\Core.dll
+D:\nws\nnws\WebApp\Core\bin\Debug\Core.pdb
+D:\nws\nnws\WebApp\Core\bin\Debug\Dapper.dll
+D:\nws\nnws\WebApp\Core\bin\Debug\Model.dll
+D:\nws\nnws\WebApp\Core\bin\Debug\Model.pdb
+D:\nws\nnws\WebApp\Core\bin\Debug\Dapper.xml
+D:\nws\nnws\WebApp\Core\obj\Debug\Core.csprojResolveAssemblyReference.cache
+D:\nws\nnws\WebApp\Core\obj\Debug\Core.dll
+D:\nws\nnws\WebApp\Core\obj\Debug\Core.pdb

@@ -1,14 +1,28 @@
 ﻿@{
     ViewBag.Title = "Exercise";
 }
-
+    <style>
+        div.edit_info p{height:45px;line-height:45px;font-size:16px;color:#666;position:relative;}
+        div.edit_info p:after{width:200%;height:1px;border-bottom:1px solid #e2e2e2;position:absolute;bottom:0;left:0;z-index:0;content:"";-webkit-transform:scale(0.5);-webkit-transform-origin:0 0;transform:scale(0.5);transform-origin:0 0;}
+        div.edit_info p:last-child:after{border:none;}
+        div.edit_info p span,span.choice{float:left;width:20px;height:20px;margin:12px 5px 0 0;border:1px solid #ccc;border-radius:50%;position:relative;}
+        div.edit_info p span.on,span.choice.on{border:1px solid #ff2757;background:#ff2757;}
+        div.edit_info p span.on:after,span.choice.on:after{content:"";width:7px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);-webkit-transform:rotate(45deg);transform:rotate(45deg);position:absolute;top:2px;left:6px;}
+        div.edit_info p span input,span.choice input{width:20px;height:20px;position:absolute;top:0;left:0;opacity:0;}
+        div.edit_info p span.close,span.choice.close{border:1px solid #ff2757;background:#ff2757;}
+        div.edit_info p span.close:after,span.choice.close:after{content:"";width:6px;height:6px;border-right:2px solid #fff;border-bottom:2px solid #fff;-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);-webkit-transform:rotate(45deg);transform:rotate(45deg);position:absolute;top:2px;left:6px;}
+        div.edit_info p span.close:before,span.choice.close:before{content:"";width:6px;height:6px;-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);-webkit-transform:rotate(45deg);transform:rotate(45deg);position:absolute;top:11px;left:6px;border-left:2px solid #fff;border-top:2px solid #fff;}
+        div.edit_info p b{display:-webkit-box;overflow:hidden;white-space:inherit;text-overflow:ellipsis;-webkit-box-orient:vertical;-webkit-line-clamp:1;}
+        div.edit_info input{display:block;width:90%;height:38px;line-height:38px;margin:0 auto 10px;padding-left:5px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;}
+        .question_title{font-weight:bold;font-size:16px;}
+    </style>
 <h2></h2>
 <div id="ds" style="height:300px;">
-    <p><span id="question"></span>[难度：<span id="difficulty"></span>]</p>
-    <div id="answer_data"></div>
+    <p><span id="question" class="question_title"></span>@*[难度：<span id="difficulty"></span>]*@</p>
+    <div id="answer_data" class="edit_info"></div>
 </div>
-<input type="button" id="prev" value="上一题" />
-<input type="button" id="next" value="下一题" />
+<input type="button" class="btn btn-lg" id="prev" value="上一题" />
+<input type="button" class="btn btn-lg" id="next" value="下一题" />
 
 @section scripts{
     <script>
@@ -33,23 +47,32 @@
 
             //点击上一题
             $("#prev").click(function () {
-                if (q_index <= 0) {
-                    alert('已经是第一题了');
-                    return;
-                }
-                var q = get_question_info(idarr[--q_index], -1);
-                show_question(q);
+                prev_question();
             })
             //点击下一题
             $("#next").click(function () {
-                if (q_index >= idarr.length) {
-                    alert('已经是之后一题了');
-                    return;
-                }
-                var q = get_question_info(idarr[++q_index], 1);
-                show_question(q);
-            })
+                next_question();
+            });
+
         });
+        //上一题
+        function prev_question() {
+            if (q_index <= 0) {
+                alert('已经是第一题了');
+                return;
+            }
+            var q = get_question_info(idarr[--q_index], -1);
+            show_question(q);
+        }
+        //下一题
+        function next_question() {
+            if (q_index >= idarr.length) {
+                alert('已经是之后一题了');
+                return;
+            }
+            var q = get_question_info(idarr[++q_index], 1);
+            show_question(q);
+        }
 
         //展示问题
         function show_question(q_info) {
@@ -58,20 +81,40 @@
             var html = "";
             var base_answer_value = 16;
             if (q_info['optionType'] == 0) {//判断题
-                html += '<input type="radio" name="answer" value="' + base_answer_value + '"/>' + q_info['optionA'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 2 + '"/>' + q_info['optionB'];
-            } else if (q_info['optionType'] == 1) {
-                html += '<input type="radio" name="answer" value="' + base_answer_value + '"/>' + q_info['optionA'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 2 + '"/>' + q_info['optionB'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 4 + '"/>' + q_info['optionC'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 8 + '"/>' + q_info['optionD'];
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value + '"/></span>'+ q_info['optionA']+'</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 2 + '"/></span>' + q_info['optionB'] + '</p>';
+            } else if (q_info['optionType'] == 1) {//单选
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value + '"/></span>' + q_info['optionA'] + '</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 2 + '"/></span>' + q_info['optionB'] + '</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 4 + '"/></span>' + q_info['optionC'] + '</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 8 + '"/></span>' + q_info['optionD'] + '</p>';
             } else if (q_info['optionType'] == 2) {
-                html += '<input type="radio" name="answer" value="' + base_answer_value + '"/>' + q_info['optionA'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 2 + '"/>' + q_info['optionB'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 4 + '"/>' + q_info['optionC'];
-                html += '<input type="radio" name="answer" value="' + base_answer_value * 8 + '"/>' + q_info['optionD'];
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value + '"/></span>' + q_info['optionA'] + '</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 2 + '"/></span>' + q_info['optionB'] + '</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 4 + '"/></span>' + q_info['optionC'] + '</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 8 + '"/></span>' + q_info['optionD'] + '</p>';
             }
             $("#answer_data").html(html);
+            $("div.edit_info p").on('click', function () {
+                $(this).find("span").addClass("on");
+                $(this).siblings().find("span").removeClass("on");
+                submit_answer(1, q_info['answer']);
+            });
+        }
+
+        //提交答案
+        function submit_answer(type,answer) {
+            var val = 0;
+            if (type == 1) {
+                $("div.edit_info span.on").each(function () {
+                    val += $(this).children("input").val();
+                })
+                if (answer == val) {
+                    next_question();
+                } else {
+                    alert('回答错误');
+                }
+            }
         }
 
         //获取问题
