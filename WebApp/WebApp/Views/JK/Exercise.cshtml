@@ -1,30 +1,20 @@
 ﻿@{
-    ViewBag.Title = "Exercise";
+    ViewBag.Title = "小车科目" + (ViewBag.km == 1 ? "一" : "三") + (ViewBag.pattern == 1 ? "顺序" : "随机") + "练习";
 }
-    <style>
-        div.edit_info p{height:45px;line-height:45px;font-size:16px;color:#666;position:relative;}
-        div.edit_info p:after{width:200%;height:1px;border-bottom:1px solid #e2e2e2;position:absolute;bottom:0;left:0;z-index:0;content:"";-webkit-transform:scale(0.5);-webkit-transform-origin:0 0;transform:scale(0.5);transform-origin:0 0;}
-        div.edit_info p:last-child:after{border:none;}
-        div.edit_info p span,span.choice{float:left;width:20px;height:20px;margin:12px 5px 0 0;border:1px solid #ccc;border-radius:50%;position:relative;}
-        div.edit_info p span.on,span.choice.on{border:1px solid #ff2757;background:#ff2757;}
-        div.edit_info p span.on:after,span.choice.on:after{content:"";width:7px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);-webkit-transform:rotate(45deg);transform:rotate(45deg);position:absolute;top:2px;left:6px;}
-        div.edit_info p span input,span.choice input{width:20px;height:20px;position:absolute;top:0;left:0;opacity:0;}
-        div.edit_info p span.close,span.choice.close{border:1px solid #ff2757;background:#ff2757;}
-        div.edit_info p span.close:after,span.choice.close:after{content:"";width:6px;height:6px;border-right:2px solid #fff;border-bottom:2px solid #fff;-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);-webkit-transform:rotate(45deg);transform:rotate(45deg);position:absolute;top:2px;left:6px;}
-        div.edit_info p span.close:before,span.choice.close:before{content:"";width:6px;height:6px;-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);-webkit-transform:rotate(45deg);transform:rotate(45deg);position:absolute;top:11px;left:6px;border-left:2px solid #fff;border-top:2px solid #fff;}
-        div.edit_info p b{display:-webkit-box;overflow:hidden;white-space:inherit;text-overflow:ellipsis;-webkit-box-orient:vertical;-webkit-line-clamp:1;}
-        div.edit_info input{display:block;width:90%;height:38px;line-height:38px;margin:0 auto 10px;padding-left:5px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;}
-        .question_title{font-weight:bold;font-size:16px;}
-    </style>
-<h2></h2>
-<div id="ds" style="height:300px;">
+@section styles{
+    <link href="~/Content/css/jk/exercise.css" type="text/css" rel="stylesheet" />
+}
+<div>
     <p><span id="question" class="question_title"></span>@*[难度：<span id="difficulty"></span>]*@</p>
+    <div id="media"></div>
     <div id="answer_data" class="edit_info"></div>
+    <div id="explain" style="margin-bottom:15px;"></div>
+    <input type="button" class="btn btn-info" id="prev" value="上一题" />
+    <input type="button" class="btn btn-info" id="next" value="下一题" />
 </div>
-<input type="button" class="btn btn-lg" id="prev" value="上一题" />
-<input type="button" class="btn btn-lg" id="next" value="下一题" />
 
 @section scripts{
+    <script src="~/Scripts/s-util.js"></script>
     <script>
         var idarr = [];//所有问题序号
         var question_arr = [];//问题集合
@@ -33,12 +23,14 @@
         var before_quantity = 5;//提前多少预加载
         var cur_question_id = "@(ViewBag.id)";//当前问题
         var q_index = 0;//当前问题索引
+        var km = "@(ViewBag.km)";
 
         $(function () {
-            idarr = JSON.parse(getSequenec(1, pattern))['Data'];
+            idarr = JSON.parse(getSequenec(km, pattern))['Data'];
             if (pattern == 1) {
                 q_index = idarr.binary_search(cur_question_id, 0, idarr.length - 1);
             } else {
+                cur_question_id = idarr[0];
                 q_index = idarr.search(cur_question_id);
             }
             //首次加载
@@ -62,6 +54,7 @@
                 return;
             }
             var q = get_question_info(idarr[--q_index], -1);
+            $("#explain").html('');
             show_question(q);
         }
         //下一题
@@ -71,6 +64,7 @@
                 return;
             }
             var q = get_question_info(idarr[++q_index], 1);
+            $("#explain").html('');
             show_question(q);
         }
 
@@ -78,10 +72,17 @@
         function show_question(q_info) {
             $("#question").text(q_info['question']);
             $("#difficulty").text(q_info['difficulty']);
-            var html = "";
             var base_answer_value = 16;
+            if (q_info['mediaType'] == 1) {//图片
+                var img_html = "<img src='" + q_info['mediaContent'] + "' class='question_img' />"
+                $("#media").html(img_html);
+            } else if (q_info['mediaType'] == 2) {//动画
+            } else {
+                $("#media").html('');
+            }
+            var html = "";
             if (q_info['optionType'] == 0) {//判断题
-                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value + '"/></span>'+ q_info['optionA']+'</p>';
+                html += '<p><span><input type="radio" name="answer" value="' + base_answer_value + '"/></span>' + q_info['optionA'] + '</p>';
                 html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 2 + '"/></span>' + q_info['optionB'] + '</p>';
             } else if (q_info['optionType'] == 1) {//单选
                 html += '<p><span><input type="radio" name="answer" value="' + base_answer_value + '"/></span>' + q_info['optionA'] + '</p>';
@@ -95,26 +96,53 @@
                 html += '<p><span><input type="radio" name="answer" value="' + base_answer_value * 8 + '"/></span>' + q_info['optionD'] + '</p>';
             }
             $("#answer_data").html(html);
-            $("div.edit_info p").on('click', function () {
-                $(this).find("span").addClass("on");
-                $(this).siblings().find("span").removeClass("on");
-                submit_answer(1, q_info['answer']);
+            $("div.edit_info p").on('click', function () {//点击答案
+                var $this = $(this);
+                $this.find("span").addClass("check");
+                $this.siblings().find("span").removeClass("check");
+                var ckh_res = submit_answer(1, q_info['answer']);
+                if (ckh_res) {//答对
+                    $this.find("span").addClass("right");
+                    $this.siblings().find("span").removeClass("right");
+                    $this.siblings().find("span").removeClass("wrong");
+                    $this.addClass("right_font");
+                    $this.siblings().removeClass("right_font");
+                    $this.siblings().removeClass("wrong_font");
+                    setTimeout(function () { next_question() }, 500);
+                    $("#explain").html('');
+                } else {//答错
+                    $this.find("span").addClass("wrong");
+                    $this.siblings().find("span").removeClass("right");
+                    $this.siblings().find("span").removeClass("wrong");
+                    $this.addClass("wrong_font");
+                    $this.siblings().removeClass("right_font");
+                    $this.siblings().removeClass("wrong_font");
+                    //错题详解
+                    var explain_html = "<p>试题详解</p>";
+                    explain_html += q_info['explain'];
+                    $("#explain").html(explain_html);
+                    //标记正确答案
+                    $("div.edit_info span").each(function () {
+                        var $nthis = $(this);
+                        if ($nthis.children("input").val() == q_info['answer']) {
+                            $nthis.addClass("right");
+                            $nthis.parent('p').addClass("right_font");
+                        }
+                    })
+                }
             });
         }
 
         //提交答案
-        function submit_answer(type,answer) {
+        function submit_answer(type, answer) {
             var val = 0;
             if (type == 1) {
-                $("div.edit_info span.on").each(function () {
+                $("div.edit_info span.check").each(function () {
                     val += $(this).children("input").val();
                 })
-                if (answer == val) {
-                    next_question();
-                } else {
-                    alert('回答错误');
-                }
+                return answer == val;
             }
+            return false;
         }
 
         //获取问题
@@ -207,30 +235,6 @@
                 type: "post",
                 async: false,
             }).responseText;
-        }
-
-
-        //二分搜索
-        Array.prototype.binary_search = function (key, start, end) {
-            if (start >= end) {
-                return -1;
-            }
-            var mid = parseInt((end + start) / 2);
-            if (this[mid] > key) {
-                return this.binary_search(key, start, mid);
-            }
-            if (this[mid] < key) {
-                return this.binary_search(key, mid, end);
-            }
-            return mid;
-        }
-        //遍历查找
-        Array.prototype.search = function (key) {
-            for (var i in this) {
-                if (this[i] == key) {
-                    return i;
-                }
-            }
         }
     </script>
 }
